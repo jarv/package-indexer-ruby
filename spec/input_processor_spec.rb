@@ -3,6 +3,12 @@ require "input_processor.rb"
 describe InputProcessor do
   let(:processor) { InputProcessor.new }
   context "parse a line" do
+    before do
+      # Quiesce the error logging for bad commands
+      # during the test run
+      processor.logger.level = Logger::FATAL
+    end
+
     it "should accept valid commands" do
       expect(processor.process("INDEX|derp|")).to eq("OK")
       expect(processor.process("INDEX|derp|")).to eq("OK")

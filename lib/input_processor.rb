@@ -1,4 +1,5 @@
 require_relative "graph"
+require "logger"
 
 module ParseResponse
   ERROR = "ERROR".freeze
@@ -16,6 +17,7 @@ class LineParseError < StandardError
 end
 
 class InputProcessor
+  attr_accessor :logger
   # /[[:graph:]]/ - Non-blank character
   #                 (excludes spaces, control characters, and similar)
   #                 https://ruby-doc.org/core-2.1.1/Regexp.html
@@ -27,20 +29,30 @@ class InputProcessor
     ([[:graph:]]*)$ # comma separated list of deps
   /x
 
-  def initialize
+  def initialize(logger: nil)
     @graph = Graph.new
+    @logger = logger || Logger.new(STDERR)
+    setup_logger
   end
 
   def process(line)
     begin
       cmd, pkg, deps = parse_line(line)
-    rescue LineParseError
+    rescue LineParseError => err
+      logger.error(err.message)
       return ParseResponse::ERROR
     end
     action_for_cmd(cmd, pkg, deps) ? ParseResponse::OK : ParseResponse::FAIL
   end
 
   private
+
+  def setup_logger
+    logger.level = Logger::INFO
+    logger.formatter = proc { |severity, datetime, _progname, msg|
+      "#{datetime} [#{severity}]: #{msg}\n"
+    }
+  end
 
   def action_for_cmd(cmd, pkg, deps)
     case cmd
@@ -55,7 +67,7 @@ class InputProcessor
 
   def parse_line(line)
     match = line.match(LINE_REGEX)
-    raise LineParseError, "Unable to parse: #{line}" unless match
+    raise LineParseError, "Unable to parse: #{line.chomp}" unless match
     cmd, pkg, dep = match.captures
     [cmd, pkg, dep.split(",")]
   end
