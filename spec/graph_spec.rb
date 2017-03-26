@@ -33,6 +33,11 @@ describe Graph do
       expect(graph.query_pkg("nginx")).to be_truthy
     end
 
+    it "should not index a package that has duplicate dependenciest" do
+      expect(graph.index_pkg("python", ["bash"])).to be_truthy
+      expect(graph.index_pkg("python3", ["bash", "bash"])).to be_falsey
+    end
+
     it "should index a package that already exist and update dependencies" do
       # pkg perl still has dependencies
       expect(graph.remove_pkg("perl")).to be_falsey
@@ -41,7 +46,6 @@ describe Graph do
       # pkg perl can now be removed from the graph
       expect(graph.remove_pkg("perl")).to be_truthy
     end
-
 
     it "should index a package that doesn't exist" do
       expect(graph.query_pkg("ruby")).to be_falsey

@@ -16,9 +16,10 @@ class Graph
   end
 
   def index_pkg(pkg, deps = [])
-    deps.each do |d|
-      return false unless has_pkg?(d)
-    end
+    return false unless deps.all? {|d| has_pkg?(d)}
+    # Do not index if duplicates are specified in
+    # the dependency list
+    return false unless deps.uniq.length == deps.length
     remove_deps_from_index(@graph[pkg]) if has_pkg?(pkg)
     add_deps_to_index(deps)
     @graph[pkg] = deps
