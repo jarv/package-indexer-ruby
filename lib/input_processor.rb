@@ -17,7 +17,7 @@ end
 
 class InputProcessor
  
-  LINE_REGEX = /^(#{CmdType::INDEX}|#{CmdType::REMOVE}|#{CmdType::QUERY})\|(.+)\|(.*)/
+  LINE_REGEX = /^(#{CmdType::INDEX}|#{CmdType::REMOVE}|#{CmdType::QUERY})\|([[:graph:]]+?)\|([[:graph:]]*)$/
 
   def initialize
     @graph = Graph.new
@@ -25,7 +25,7 @@ class InputProcessor
 
   def process(line)
     begin
-      cmd, pkg, deps = parse_line(line.chomp)
+      cmd, pkg, deps = parse_line(line)
     rescue LineParseError
       return ParseResponse::ERROR
     end
