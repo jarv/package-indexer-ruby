@@ -3,7 +3,7 @@ require "graph.rb"
 describe Graph do
   let(:graph) { Graph.new }
 
-  context 'query a package' do
+  context "query a package" do
     before(:each) do
       graph.index_pkg("nginx")
       graph.index_pkg("perl")
@@ -19,7 +19,7 @@ describe Graph do
     end
   end
 
-  context 'index a package' do
+  context "index a package" do
     before(:each) do
       graph.index_pkg("nginx")
       graph.index_pkg("perl")
@@ -35,7 +35,7 @@ describe Graph do
 
     it "should not index a package that has duplicate dependenciest" do
       expect(graph.index_pkg("python", ["bash"])).to be_truthy
-      expect(graph.index_pkg("python3", ["bash", "bash"])).to be_falsey
+      expect(graph.index_pkg("python3", %w(bash bash))).to be_falsey
     end
 
     it "should index a package that already exist and update dependencies" do
@@ -55,7 +55,7 @@ describe Graph do
 
     it "should not index a package that has deps that don't exist in the graph" do
       expect(graph.query_pkg("ruby")).to be_falsey
-      expect(graph.index_pkg("ruby", ["pkg1", "pkg2"])).to be_falsey
+      expect(graph.index_pkg("ruby", %w(pkg1 pkg2))).to be_falsey
       expect(graph.query_pkg("ruby")).to be_falsey
     end
   end

@@ -1,23 +1,31 @@
 require_relative "graph"
 
 module ParseResponse
-  ERROR = "ERROR"
-  OK = "OK"
-  FAIL = "FAIL"
+  ERROR = "ERROR".freeze
+  OK = "OK".freeze
+  FAIL = "FAIL".freeze
 end
 
 module CmdType
-  INDEX = "INDEX"
-  REMOVE = "REMOVE"
-  QUERY = "QUERY"
+  INDEX = "INDEX".freeze
+  REMOVE = "REMOVE".freeze
+  QUERY = "QUERY".freeze
 end
 
 class LineParseError < StandardError
 end
 
 class InputProcessor
- 
-  LINE_REGEX = /^(#{CmdType::INDEX}|#{CmdType::REMOVE}|#{CmdType::QUERY})\|([[:graph:]]+?)\|([[:graph:]]*)$/
+  # /[[:graph:]]/ - Non-blank character
+  #                 (excludes spaces, control characters, and similar)
+  #                 https://ruby-doc.org/core-2.1.1/Regexp.html
+  LINE_REGEX = /
+    ^(#{CmdType::INDEX}|#{CmdType::REMOVE}|#{CmdType::QUERY}) # valid cmd
+    \|
+    ([[:graph:]]+?) # package to index
+    \|
+    ([[:graph:]]*)$ # comma separated list of deps
+  /x
 
   def initialize
     @graph = Graph.new
@@ -29,22 +37,26 @@ class InputProcessor
     rescue LineParseError
       return ParseResponse::ERROR
     end
-    case cmd
-    when CmdType::INDEX
-      return (@graph.index_pkg(pkg, deps) ? ParseResponse::OK : ParseResponse::FAIL)
-    when CmdType::REMOVE
-      return (@graph.remove_pkg(pkg) ? ParseResponse::OK : ParseResponse::FAIL)
-    when CmdType::QUERY
-      return (@graph.query_pkg(pkg) ? ParseResponse::OK : ParseResponse::FAIL)
-    end
+    action_for_cmd(cmd, pkg, deps) ? ParseResponse::OK : ParseResponse::FAIL
   end
 
   private
 
+  def action_for_cmd(cmd, pkg, deps)
+    case cmd
+    when CmdType::INDEX
+      @graph.index_pkg(pkg, deps)
+    when CmdType::REMOVE
+      @graph.remove_pkg(pkg)
+    when CmdType::QUERY
+      @graph.query_pkg(pkg)
+    end
+  end
+
   def parse_line(line)
     match = line.match(LINE_REGEX)
-    raise LineParseError.new("Unable to parse: #{line}") unless match
+    raise LineParseError, "Unable to parse: #{line}" unless match
     cmd, pkg, dep = match.captures
-    return cmd, pkg, dep.split(",")
+    [cmd, pkg, dep.split(",")]
   end
 end

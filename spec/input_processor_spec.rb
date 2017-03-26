@@ -1,9 +1,8 @@
 require "input_processor.rb"
 
-
 describe InputProcessor do
   let(:processor) { InputProcessor.new }
-  context 'parse a line' do
+  context "parse a line" do
     it "should accept valid commands" do
       expect(processor.process("INDEX|derp|")).to eq("OK")
       expect(processor.process("INDEX|derp|")).to eq("OK")
@@ -49,4 +48,3 @@ describe InputProcessor do
     end
   end
 end
-
