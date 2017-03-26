@@ -12,7 +12,7 @@ mutex = Mutex.new
 logger.info("Starting server, listening on port #{PORT}")
 Socket.tcp_server_loop(PORT) do |socket, _|
   Thread.new do
-    logger.info("New connection TID: #{Thread.current.object_id}")
+    logger.debug("New connection TID: #{Thread.current.object_id}")
     loop do
       line = socket.gets
       mutex.synchronize do

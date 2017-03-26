@@ -39,7 +39,7 @@ class InputProcessor
     begin
       cmd, pkg, deps = parse_line(line)
     rescue LineParseError => err
-      logger.error(err.message)
+      logger.debug(err.message)
       return ParseResponse::ERROR
     end
     action_for_cmd(cmd, pkg, deps) ? ParseResponse::OK : ParseResponse::FAIL
@@ -48,7 +48,7 @@ class InputProcessor
   private
 
   def setup_logger
-    logger.level = Logger::INFO
+    logger.level = ENV["PKG_INDEX_DEBUG"] ? Logger::DEBUG : Logger::INFO
     logger.formatter = proc { |severity, datetime, _progname, msg|
       "#{datetime} [#{severity}]: #{msg}\n"
     }
